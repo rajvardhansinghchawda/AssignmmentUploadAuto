@@ -1,0 +1,33 @@
+# Root gitignore
+piemr_backend.zip
+agenthandover_report.md
+skills.md
+frontentdescription.md
+projectdescription.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Local envs
+.env
+*.env
+backend/.env
+frontend/.env
+
+# Dependencies
+backend/venv/
+backend/.venv/
+frontend/node_modules/
+
+# Build artifacts
+frontend/dist/
+backend/staticfiles/
+backend/media/
+backend/downloads/
+backend/generated/
+backend/*.log
