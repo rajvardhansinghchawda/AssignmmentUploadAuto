@@ -16,7 +16,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentProfile
         fields = [
-            "id", "user", "name", "enrollment_no",
+            "id", "user", "name", "full_name", "enrollment_no",
             "is_setup_complete", "has_piemr_credentials",
             "created_at",
         ]
@@ -28,5 +28,6 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
 class ConfigSerializer(serializers.Serializer):
     """For POST /api/config/ — saving PIEMR credentials."""
+    full_name = serializers.CharField(max_length=100, required=False, allow_blank=True)
     enrollment_no = serializers.CharField(max_length=30)
     piemr_password = serializers.CharField(write_only=True)

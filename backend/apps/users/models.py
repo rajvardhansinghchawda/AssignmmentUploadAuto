@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     enrollment_no = models.CharField(max_length=30, blank=True)
+    full_name = models.CharField(max_length=100, blank=True)
     piemr_password = models.TextField(blank=True)          # Fernet-encrypted
     google_access_token = models.TextField(blank=True)     # Fernet-encrypted
     google_refresh_token = models.TextField(blank=True)    # Fernet-encrypted

@@ -77,7 +77,7 @@ def build_answer_doc(
         doc.add_paragraph()  # Spacer
 
     # ── Footer ────────────────────────────────────────────────────────────────
-    # _add_divider(doc)
+    _add_footer(doc, student_info.get("full_name") or student_info.get("name", "N/A"))
 
     # ── Save ──────────────────────────────────────────────────────────────────
     safe_subject = subject_name.replace(" ", "_").replace("/", "-").replace("\\", "-")
@@ -118,3 +118,14 @@ def _add_divider(doc: Document):
 def _set_heading_color(heading, color: RGBColor):
     for run in heading.runs:
         run.font.color.rgb = color
+
+
+def _add_footer(doc: Document, full_name: str):
+    """Add student's name to the document footer."""
+    section = doc.sections[0]
+    footer = section.footer
+    para = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = para.add_run(f"Generated for: {full_name}")
+    run.font.size = Pt(8)
+    run.font.color.rgb = RGBColor(0x9C, 0xA3, 0xAF)

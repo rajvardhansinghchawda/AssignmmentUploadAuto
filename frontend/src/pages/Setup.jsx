@@ -7,6 +7,7 @@ import { ScheduleToggle } from '../components/ScheduleToggle';
 
 export function Setup() {
   const navigate = useNavigate();
+  const [fullName, setFullName] = useState('');
   const [enrollmentNo, setEnrollmentNo] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +21,7 @@ export function Setup() {
     api.get('config/')
       .then(res => {
         if (res.data?.enrollment_no) setEnrollmentNo(res.data.enrollment_no);
+        if (res.data?.full_name) setFullName(res.data.full_name);
       })
       .catch(console.error);
       
@@ -38,7 +40,11 @@ export function Setup() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await api.post('config/', { enrollment_no: enrollmentNo, piemr_password: password });
+      await api.post('config/', { 
+        full_name: fullName, 
+        enrollment_no: enrollmentNo, 
+        piemr_password: password 
+      });
       toast.success('Credentials saved securely', {
         style: {
           background: '#0b1326',
@@ -83,6 +89,20 @@ export function Setup() {
             </h2>
             
             <form onSubmit={handleSaveCredentials} className="space-y-5">
+              <div>
+                <label className="block text-xs font-mono text-on-surface-variant mb-2 uppercase tracking-wide">
+                  Full Name (for document footer)
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-transparent focus:border-primary/40 rounded px-4 py-2.5 text-on-surface outline-none transition-colors"
+                  placeholder="e.g. John Doe"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-mono text-on-surface-variant mb-2 uppercase tracking-wide">
                   Enrollment Number

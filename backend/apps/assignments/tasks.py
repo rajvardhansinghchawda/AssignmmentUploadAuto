@@ -90,8 +90,9 @@ def run_assignment_pipeline(self, student_id: int, triggered_by: str = "schedule
         refresh_token = decrypt(student.google_refresh_token) if student.google_refresh_token else ""
 
         student_info = {
-            "name": student.user.get_full_name() or student.user.email,
+            "name": student.full_name or student.user.get_full_name() or student.user.email,
             "enrollment": enrollment_no,
+            "full_name": student.full_name,
         }
 
         # ── Step 3: Selenium login & navigation ───────────────────────────────

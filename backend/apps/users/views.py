@@ -149,6 +149,7 @@ class ConfigView(APIView):
             return Response({})
         return Response({
             "enrollment_no": profile.enrollment_no,
+            "full_name": profile.full_name,
             "has_password": bool(profile.piemr_password),
             "is_setup_complete": profile.is_setup_complete,
         })
@@ -160,6 +161,7 @@ class ConfigView(APIView):
 
         profile, _ = StudentProfile.objects.get_or_create(user=request.user)
         profile.enrollment_no = serializer.validated_data["enrollment_no"]
+        profile.full_name = serializer.validated_data.get("full_name", "")
         profile.piemr_password = encrypt(serializer.validated_data["piemr_password"])
         profile.is_setup_complete = True
         profile.save()
