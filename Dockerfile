@@ -35,6 +35,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrandr2 \
     xdg-utils \
     libgbm1 \
+    libvulkan1 \
+    libu2f-udev \
     ca-certificates \
     && wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && apt-get install -y /tmp/chrome.deb \

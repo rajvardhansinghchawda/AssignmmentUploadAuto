@@ -165,6 +165,9 @@ GENERATED_DIR = BASE_DIR / "generated"
 DOWNLOADS_DIR.mkdir(exist_ok=True)
 GENERATED_DIR.mkdir(exist_ok=True)
 
+# ── Selenium ──────────────────────────────────────────────────────────────────
+SELENIUM_HEADLESS = os.environ.get("SELENIUM_HEADLESS", "True") == "True"
+
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOGGING = {
     "version": 1,
