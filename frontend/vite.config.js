@@ -6,6 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
     plugins: [react()],
+    base: "/static/",
     define: {
       // Makes VITE_API_URL available as import.meta.env.VITE_API_URL
       // Falls back to empty string (same-origin) when deployed on HuggingFace

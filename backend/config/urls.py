@@ -13,7 +13,7 @@ urlpatterns = [
     path("api/config/", include("apps.users.config_urls")),
 
     # Serve React frontend for all non-API routes
-    re_path(r"^(?!api/|admin/|static/).*$", TemplateView.as_view(
+    re_path(r"^(?!api/|admin/|static/|assets/|manifest\.json|robots\.txt|favicon\.ico).*$", TemplateView.as_view(
         template_name="index.html"
     )),
 ]
