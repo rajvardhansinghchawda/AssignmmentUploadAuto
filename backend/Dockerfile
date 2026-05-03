@@ -10,11 +10,12 @@ COPY frontend/ ./
 RUN npm run build
 
 
-# ── Stage 2: Python backend + Chrome ──────────────────────────────────────────
-FROM python:3.11-slim AS backend
+# ── Stage 2: Python backend + Chrome + supervisord ────────────────────────────
+FROM python:3.11-slim AS final
 
-# Install system dependencies + Chrome
+# Install supervisord + Chrome system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    supervisor \
     wget \
     gnupg \
     curl \
@@ -40,23 +41,37 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Python deps
+# Create non-root user (HuggingFace Spaces requirement)
+RUN useradd -m -u 1000 appuser
+
 WORKDIR /app
+
+# Install Python dependencies
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend source
+# Copy Django backend source
 COPY backend/ .
 
-# Copy built React app into Django static files
-COPY --from=frontend-builder /app/frontend/dist ./staticfiles/
+# Copy built React app into Django staticfiles directory
+COPY --from=frontend-builder /app/frontend/dist ./staticfiles/frontend/
 
-# Create temp dirs
-RUN mkdir -p downloads generated
+# Copy supervisord config
+COPY backend/supervisord.conf /etc/supervisor/conf.d/app.conf
 
-# Collect Django static files
-RUN python manage.py collectstatic --noinput || true
+# Create required runtime directories and fix permissions
+RUN mkdir -p downloads generated \
+    && chown -R appuser:appuser /app \
+    && chmod -R 755 /app
 
-EXPOSE 8000
+# Switch to non-root user
+USER appuser
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
+# HuggingFace Spaces uses port 7860
+EXPOSE 7860
+
+# Run migrations + collectstatic, then launch all processes via supervisord
+CMD ["sh", "-c", "\
+    python manage.py migrate --noinput && \
+    python manage.py collectstatic --noinput && \
+    supervisord -c /etc/supervisor/conf.d/app.conf"]
