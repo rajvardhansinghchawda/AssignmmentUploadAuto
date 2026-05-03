@@ -96,9 +96,10 @@ def run_assignment_pipeline(self, student_id: int, triggered_by: str = "schedule
         }
 
         # ── Step 3: Selenium login & navigation ───────────────────────────────
-        run.append_log("Launching Chrome browser (visible mod)...")
-        # Passing headless=False because user requested it for testing purposes
-        driver = selenium_svc.build_driver(download_dir=run_download_dir, headless=False)
+        mode_str = "headless" if settings.SELENIUM_HEADLESS else "visible"
+        run.append_log(f"Launching Chrome browser ({mode_str} mode)...")
+        # Ensure headless is ALWAYS True on server environments
+        driver = selenium_svc.build_driver(download_dir=run_download_dir, headless=settings.SELENIUM_HEADLESS)
 
         selenium_svc.login(driver, enrollment_no, piemr_password, log_callback=run.append_log)
 
