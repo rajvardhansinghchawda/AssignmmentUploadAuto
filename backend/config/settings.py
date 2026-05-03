@@ -133,6 +133,7 @@ GOOGLE_SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
     "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/documents",
 ]
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 

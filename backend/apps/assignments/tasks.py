@@ -5,7 +5,7 @@ Orchestrates the full assignment automation pipeline for one student.
 import os
 import shutil
 import logging
-from datetime import datetime
+from datetime import datetime, date
 
 from celery import shared_task
 from django.utils import timezone
@@ -29,7 +29,7 @@ def run_assignment_pipeline(self, student_id: int, triggered_by: str = "schedule
     from apps.assignments.models import AssignmentRun, GeneratedDoc
     from services.crypto import decrypt
     from services import piemr_selenium as selenium_svc
-    from services import extractor, ai_service, doc_builder, drive_service
+    from services import extractor, ai_service, gdocs_builder, drive_service
 
     # ── Step 1: Resolve run record ───────────────────────────────────────────
     try:
@@ -134,7 +134,8 @@ def run_assignment_pipeline(self, student_id: int, triggered_by: str = "schedule
 
                 try:
                     # 5a. Download question paper
-                    run.append_log(f"  Downloading question paper for {subject_name}...")
+                    run.append_log(f"  [Action] Opening subject: {subject_name}")
+                    run.append_log(f"  [Action] Locating question paper attachment...")
                     qp_path = selenium_svc.download_question_paper(
                         driver, subject_info, run_download_dir, 
                         assignment_index=a_idx, 
@@ -154,32 +155,35 @@ def run_assignment_pipeline(self, student_id: int, triggered_by: str = "schedule
                     qa_dict = ai_service.generate_answers(subject_name, questions)
                     run.append_log(f"  Generated answers for {len(qa_dict)} question(s).")
 
-                    # 5d. Build answer document
-                    run.append_log("  Building formatted Word document...")
-                    doc_path = doc_builder.build_answer_doc(
+                    # 5d. Build answer document via Google Docs API
+                    run.append_log("  Creating and formatting Google Doc...")
+                    doc_id = gdocs_builder.build_google_doc(
                         subject_name=subject_name,
                         student_info=student_info,
                         qa_pairs=qa_dict,
-                        output_dir=run_generated_dir,
+                        access_token=access_token,
+                        refresh_token=refresh_token,
                     )
+                    
+                    # Store web link in doc_record (fetch from drive if needed, or just build it)
+                    doc_record.drive_url = f"https://docs.google.com/document/d/{doc_id}/edit"
+                    
+                    # 5e. Export as local .docx for PIEMR portal upload
+                    run.append_log("  Exporting to local .docx for portal upload...")
+                    safe_subject = subject_name.replace(" ", "_").replace("/", "-").replace("\\", "-")
+                    filename = f"{safe_subject}_{date.today().isoformat()}.docx"
+                    doc_path = os.path.join(run_generated_dir, filename)
+                    
+                    gdocs_builder.export_to_local_docx(
+                        doc_id=doc_id,
+                        output_path=doc_path,
+                        access_token=access_token,
+                        refresh_token=refresh_token,
+                    )
+                    
                     doc_record.local_path = doc_path
-                    doc_record.save(update_fields=["local_path"])
-                    run.append_log(f"  Document created: {os.path.basename(doc_path)}")
-
-                    # 5e. Upload to Google Drive
-                    if access_token:
-                        run.append_log("  Uploading to Google Drive...")
-                        drive_url = drive_service.upload_to_drive(
-                            filepath=doc_path,
-                            access_token=access_token,
-                            refresh_token=refresh_token,
-                            subject_name=subject_name,
-                        )
-                        doc_record.drive_url = drive_url
-                        doc_record.save(update_fields=["drive_url"])
-                        run.append_log(f"  Uploaded to Drive: {drive_url}")
-                    else:
-                        run.append_log("  Skipping Drive upload (no Google token).")
+                    doc_record.save(update_fields=["local_path", "drive_url"])
+                    run.append_log(f"  Google Doc ready: {doc_record.drive_url}")
 
                     # 5f. Upload to PIEMR portal
                     run.append_log("  Uploading answer document to PIEMR portal...")

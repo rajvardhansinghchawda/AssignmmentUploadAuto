@@ -1,6 +1,6 @@
 """
 Standalone Test Script for PIEMR Portal Selenium Automation v3
-Runs with HEADLESS mode DISABLED so you can watch the browser.
+Runs in HEADLESS mode (no browser window).
 """
 import os
 import time
@@ -54,9 +54,9 @@ def _dismiss_alert(driver: webdriver.Chrome, timeout=3) -> str:
 # ── Driver ────────────────────────────────────────────────────────────────────
 
 def build_driver(download_dir: str = None) -> webdriver.Chrome:
-    """Build a configured Chrome WebDriver instance."""
+    """Build a configured Chrome WebDriver instance (headless)."""
     opts = Options()
-    # opts.add_argument("--headless=new") # DISABLED FOR VISIBILITY
+    opts.add_argument("--headless=new")
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
     opts.add_argument("--disable-gpu")
@@ -65,9 +65,6 @@ def build_driver(download_dir: str = None) -> webdriver.Chrome:
     opts.add_argument("--disable-blink-features=AutomationControlled")
     opts.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
     opts.add_experimental_option("useAutomationExtension", False)
-    
-    # Keeps the browser open after the script finishes
-    opts.add_experimental_option("detach", True)
 
     if download_dir:
         os.makedirs(download_dir, exist_ok=True)
@@ -83,7 +80,7 @@ def build_driver(download_dir: str = None) -> webdriver.Chrome:
     driver = webdriver.Chrome(service=service, options=opts)
     driver.implicitly_wait(3)
     driver.set_page_load_timeout(60)
-    logger.info("[selenium] Chrome WebDriver initialised - VISIBLE MODE")
+    logger.info("[selenium] Chrome WebDriver initialised - HEADLESS MODE")
     return driver
 
 
@@ -330,7 +327,7 @@ if __name__ == "__main__":
     user = input("Enter Enrollment Number: ")
     pwd = getpass("Enter Password: ")
     
-    print("\nStarting visible Chrome driver...")
+    print("\nStarting headless Chrome driver...")
     test_download_dir = os.path.join(os.getcwd(), "downloads", "test_run")
     driver = build_driver(download_dir=test_download_dir)
     try:
@@ -354,7 +351,7 @@ if __name__ == "__main__":
                     except Exception as e:
                         print(f"     Download/Extraction failed for this assignment: {e}")
                 
-        print("\nBrowser will remain open so you can inspect. Close it manually when done.")
+        print("\nDone. Browser closed (headless mode).")
     except Exception as e:
         print(f"\nAn error occurred: {e}")
         driver.quit()

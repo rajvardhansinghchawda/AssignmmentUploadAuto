@@ -1,16 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { useSSE } from '../hooks/useSSE';
 
-export function LiveLog({ runId, isActive }) {
+export function LiveLog({ runId, isActive, initialLogs = "" }) {
   const bottomRef = useRef(null);
   
-  // Only stream if isActive is true
+  // Split initialLogs into lines and filter out empty ones
+  const initialLines = React.useMemo(() => {
+    return initialLogs.split('\n').filter(line => line.trim() !== '');
+  }, [initialLogs]);
+
   const streamUrl = isActive ? `assignments/runs/${runId}/stream/` : null;
-  const streamedLines = useSSE(streamUrl, isActive);
-  
-  // For static lines, we would fetch them via a normal API call in RunDetail page
-  // and pass them as props, but for simplicity here we assume streamedLines is everything
-  // when active.
+  const streamedLines = useSSE(streamUrl, isActive, initialLines);
   
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -137,7 +137,7 @@ export function RunDetail() {
             <span className="w-4 h-px bg-outline-variant/30"></span> 
             Terminal Console
           </h2>
-          <LiveLog runId={id} isActive={isRunning} />
+          <LiveLog runId={id} isActive={isRunning} initialLogs={run.log_output} />
         </div>
 
         {docs.length > 0 && (
