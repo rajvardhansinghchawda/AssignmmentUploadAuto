@@ -57,12 +57,23 @@ def build_driver(download_dir: str = None, headless: bool = True) -> webdriver.C
     opts = Options()
     if headless:
         opts.add_argument("--headless=new")
+    
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
     opts.add_argument("--disable-gpu")
+    opts.add_argument("--disable-setuid-sandbox")
     opts.add_argument("--window-size=1400,900")
     opts.add_argument("--disable-notifications")
+    opts.add_argument("--disable-extensions")
     opts.add_argument("--disable-blink-features=AutomationControlled")
+    
+    # Try to find Google Chrome binary in common Linux locations if running in Docker/Linux
+    if os.name == "posix":
+        for path in ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/local/bin/google-chrome"]:
+            if os.path.exists(path):
+                opts.binary_location = path
+                break
+
     opts.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
     opts.add_experimental_option("useAutomationExtension", False)
 
@@ -80,7 +91,9 @@ def build_driver(download_dir: str = None, headless: bool = True) -> webdriver.C
     driver = webdriver.Chrome(service=service, options=opts)
     driver.implicitly_wait(3)
     driver.set_page_load_timeout(60)
-    logger.info("[selenium] Chrome WebDriver initialised")
+    
+    mode = "HEADLESS" if headless else "VISIBLE"
+    logger.info(f"[selenium] Chrome WebDriver initialised - {mode} MODE")
     return driver
 
 
@@ -226,13 +239,17 @@ def download_question_paper(driver: webdriver.Chrome, subject_info: dict, downlo
     for row in rows:
         try:
             btn = row.find_element(By.XPATH, ".//a[contains(@id,'btnUpload')]")
-            # For testing: Allow re-upload
+            btn_text = btn.text.strip().lower()
+            if "re-upload" in btn_text or "reupload" in btn_text:
+                logger.info(f"[selenium] Skipping row, already uploaded (button says: {btn.text})")
+                continue
+            
             valid_rows.append((row, btn.get_attribute("id")))
         except NoSuchElementException:
             continue
 
     if not valid_rows or assignment_index >= len(valid_rows):
-        raise RuntimeError(f"No pending assignment row found at index {assignment_index} for {subject_info.get('name')}")
+        raise RuntimeError(f"No pending assignment row found at index {assignment_index} for {subject_info.get('name')} (It may have already been uploaded)")
 
     target_row, target_btn_id = valid_rows[assignment_index]
     # Store the btn_id so `upload_file` targets the exactly same assigned row
