@@ -54,8 +54,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy Django backend source
 COPY backend/ .
 
-# Copy built React app into Django staticfiles directory
-COPY --from=frontend-builder /app/frontend/dist ./staticfiles/frontend/
+# Copy built React app into a temporary directory for Django collectstatic
+COPY --from=frontend-builder /app/frontend/dist ./frontend_dist/
 
 # Copy supervisord config
 COPY backend/supervisord.conf /etc/supervisor/conf.d/app.conf
