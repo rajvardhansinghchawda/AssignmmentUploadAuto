@@ -55,7 +55,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             BASE_DIR / "templates",
-            BASE_DIR / "staticfiles" / "frontend",  # React build index.html
+            BASE_DIR / "frontend_dist",  # React build index.html
         ],
         "APP_DIRS": True,
         "OPTIONS": {
