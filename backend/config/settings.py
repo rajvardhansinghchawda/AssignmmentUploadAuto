@@ -133,6 +133,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_MAX_LOOP_INTERVAL = int(os.environ.get("CELERY_BEAT_MAX_LOOP_INTERVAL", "60"))
 
 # ── Google OAuth ────────────────────────────────────────────────────────────
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
